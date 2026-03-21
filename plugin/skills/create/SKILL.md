@@ -1,5 +1,5 @@
 ---
-name: create
+name: valur-prototype:create
 description: Create a new Valur prototype project in the current directory. Sets up Vue 3 + Vite + Tailwind frontend, Hono API backend, SQLite database, and decimal.js calculations — all running on Bun with zero infrastructure.
 user_invocable: true
 ---

@@ -1,5 +1,5 @@
 ---
-name: review
+name: valur-prototype:review
 description: Review a Valur prototype for production-readiness. Checks code against Valur's standards (soft-delete, timestamps, Decimal math, API patterns) and generates an integration report for engineers.
 user_invocable: true
 ---

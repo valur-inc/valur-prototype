@@ -39,7 +39,7 @@ STEP 3 -- Install the plugin
     claude
 
   Run these two commands:
-    /plugin marketplace add https://github.com/AcumenValur/valur-prototype
+    /plugin marketplace add https://github.com/valur-inc/valur-prototype
     /plugin install valur-prototype
 
   Done. You can close Claude Code.

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "valur-prototype",
+  "owner": {
+    "name": "Valur Engineering"
+  },
+  "plugins": [
+    {
+      "name": "valur-prototype",
+      "source": "./plugin",
+      "description": "Full-stack prototyping environment for Valur team members. Build UI, API, database, and financial calculations without needing Docker, PostgreSQL, or the production codebase.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Valur Engineering"
+      }
+    }
+  ]
+}

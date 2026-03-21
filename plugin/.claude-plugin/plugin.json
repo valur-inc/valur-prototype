@@ -1,0 +1,8 @@
+{
+  "name": "valur-prototype",
+  "version": "1.0.0",
+  "description": "Full-stack prototyping environment for Valur team members. Build UI, API, database, and financial calculations without needing Docker, PostgreSQL, or the production codebase.",
+  "author": {
+    "name": "Valur Engineering"
+  }
+}

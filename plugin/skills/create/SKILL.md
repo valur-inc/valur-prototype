@@ -10,13 +10,25 @@ Set up a full-stack prototype project in the current working directory.
 
 ## Step 1: Ensure Bun is installed
 
-Run `bun --version` to check.
+Run `$HOME/.bun/bin/bun --version` to check. If that fails, also try `bun --version` (it may already be on PATH).
 
 If Bun is NOT installed, install it automatically:
-- **Mac/Linux**: Run `curl -fsSL https://bun.sh/install | bash` then `export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"`
-- **Windows**: Run `powershell -c "irm bun.sh/install.ps1 | iex"`
 
-Verify with `bun --version` after installing. If it still fails, tell the user to close and reopen their terminal, then run `/valur-prototype:create` again.
+1. **Install**: Run `curl -fsSL https://bun.sh/install | bash`
+2. **Set PATH for this session**: Run `export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"`
+3. **Persist PATH for the user's terminal**: The installer writes to `~/.bashrc`, but macOS defaults to zsh. Detect the shell and append to the correct rc file if it doesn't already contain `BUN_INSTALL`:
+   - Run `echo $SHELL` to detect the shell
+   - If it contains `zsh`: check `~/.zshrc` for `BUN_INSTALL`. If not found, append:
+     ```
+     echo '' >> ~/.zshrc
+     echo '# Bun' >> ~/.zshrc
+     echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.zshrc
+     echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.zshrc
+     ```
+   - If it contains `bash`: the installer already handled `~/.bashrc`, no action needed.
+4. **Verify**: Run `$HOME/.bun/bin/bun --version`. If this fails, tell the user to close and reopen their terminal, then run `/valur-prototype:create` again.
+
+For **Windows**: Run `powershell -c "irm bun.sh/install.ps1 | iex"`
 
 ## Step 2: Create project files
 

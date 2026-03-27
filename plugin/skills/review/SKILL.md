@@ -11,6 +11,7 @@ Review prototype code to assess how ready it is for engineering integration into
 ## Process
 
 1. Read the prototype's key files:
+   - `.gitignore` — should exist and exclude `node_modules/`, `dist/`, `prototype.db`, `.vercel/`, `.env`
    - `server/db/schema.ts` — database tables
    - `server/routes/` — all API route files
    - `calcs/` — all calculation files
@@ -20,6 +21,11 @@ Review prototype code to assess how ready it is for engineering integration into
 
 2. Check each area against these standards:
 
+### Project Setup
+- `.gitignore` exists and excludes `node_modules/`, `dist/`, `prototype.db`, `.vercel/`, `.env`
+- No secrets or database files committed to git (run `git ls-files` and check)
+- `package.json` only contains template dependencies — no extra UI frameworks
+
 ### Database (`server/db/schema.ts`)
 - Every table has: `id`, `is_deleted`, `created_at`, `updated_at`
 - Field types make sense (TEXT for strings, INTEGER for numbers, TEXT for monetary values)
@@ -27,8 +33,10 @@ Review prototype code to assess how ready it is for engineering integration into
 ### API Routes (`server/routes/`)
 - List queries filter `WHERE is_deleted = 0`
 - Delete endpoints soft-delete (`SET is_deleted = 1`), never hard-delete
-- Proper HTTP status codes (200 list/update, 201 create, 404 not found)
+- Proper HTTP status codes (200 list/update, 201 create, 400 bad input, 404 not found)
 - Consistent response shapes
+- Input validation on POST and PATCH endpoints (required fields checked, 400 for bad input)
+- PATCH and DELETE check `is_deleted = 0` before operating (don't modify deleted records)
 
 ### Calculations (`calcs/`)
 - Uses `Decimal` from decimal.js for all financial math (no native `number` for money)

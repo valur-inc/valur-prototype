@@ -26,8 +26,11 @@ exampleRoutes.get("/examples", (c) => {
 // Create
 exampleRoutes.post("/examples", async (c) => {
   const body = await c.req.json<{ name: string }>();
+  if (!body.name || typeof body.name !== "string") {
+    return c.json({ message: "name is required" }, 400);
+  }
   const db = getDb();
-  const result = db.query("INSERT INTO examples (name) VALUES (?) RETURNING *").get(body.name);
+  const result = db.query("INSERT INTO examples (name) VALUES (?) RETURNING *").get(body.name.trim());
   return c.json(result, 201);
 });
 
@@ -42,17 +45,25 @@ exampleRoutes.get("/examples/:id", (c) => {
 // Update
 exampleRoutes.patch("/examples/:id", async (c) => {
   const body = await c.req.json<{ name?: string }>();
-  const db = getDb();
-  if (body.name) {
-    db.query("UPDATE examples SET name = ?, updated_at = datetime('now') WHERE id = ?").run(body.name, c.req.param("id"));
+  if (body.name !== undefined && (typeof body.name !== "string" || !body.name.trim())) {
+    return c.json({ message: "name must be a non-empty string" }, 400);
   }
-  const row = db.query("SELECT * FROM examples WHERE id = ?").get(c.req.param("id"));
+  const db = getDb();
+  const existing = db.query("SELECT * FROM examples WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
+  if (!existing) return c.json({ message: "Not found" }, 404);
+  if (body.name) {
+    db.query("UPDATE examples SET name = ?, updated_at = datetime('now') WHERE id = ? AND is_deleted = 0")
+      .run(body.name.trim(), c.req.param("id"));
+  }
+  const row = db.query("SELECT * FROM examples WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
   return c.json(row);
 });
 
 // Soft delete (mirrors BaseSafeMixin pattern)
 exampleRoutes.delete("/examples/:id", (c) => {
   const db = getDb();
+  const existing = db.query("SELECT * FROM examples WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
+  if (!existing) return c.json({ message: "Not found" }, 404);
   db.query("UPDATE examples SET is_deleted = 1, updated_at = datetime('now') WHERE id = ?").run(c.req.param("id"));
   return c.json({ success: true });
 });

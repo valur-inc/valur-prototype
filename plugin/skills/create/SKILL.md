@@ -8,7 +8,11 @@ user_invocable: true
 
 Set up a full-stack prototype project in the current working directory.
 
-## Step 1: Ensure Bun is installed
+## Step 1: Check directory is empty
+
+Run `ls -A` in the current directory. If there are files present (other than `.git`), warn the user: "This folder isn't empty. Create a new empty folder and run /valur-prototype:create there."
+
+## Step 2: Ensure Bun is installed
 
 Run `$HOME/.bun/bin/bun --version` to check. If that fails, also try `bun --version` (it may already be on PATH).
 
@@ -30,13 +34,14 @@ If Bun is NOT installed, install it automatically:
 
 For **Windows**: Run `powershell -c "irm bun.sh/install.ps1 | iex"`
 
-## Step 2: Create project files
+## Step 3: Create project files
 
-Read every file from the plugin's template directory at `${CLAUDE_PLUGIN_ROOT}/template/` — preserving the full directory structure (`src/`, `server/`, `calcs/`, `scripts/`).
+Read every file from the plugin's template directory at `${CLAUDE_PLUGIN_ROOT}/template/` and write it to the current working directory, preserving the exact same content and directory structure.
 
-Write each file to the current working directory, maintaining the same relative paths. The template contains:
+**Complete file checklist** — read and write every one of these files. Do not skip any:
 
 ```
+.gitignore                         # Git ignore rules (node_modules, db, etc.)
 CLAUDE.md                          # Guides future Claude sessions
 package.json                       # Bun dependencies
 tsconfig.json                      # TypeScript config
@@ -61,11 +66,25 @@ server/routes/example.ts           # Example CRUD routes
 calcs/index.ts                     # decimal.js calculator example
 ```
 
-## Step 3: Install dependencies
+Create the directories first (`src/pages/`, `src/stores/`, `src/composables/`, `src/types/`, `src/assets/`, `server/routes/`, `server/db/`, `calcs/`, `scripts/`), then write the files.
+
+**Do NOT modify template files** — write them exactly as they are in the plugin's template directory.
+
+## Step 4: Install dependencies
 
 Run `bun install`.
 
-## Step 4: Scaffold initial feature (if described)
+## Step 5: Initialize git repository
+
+```bash
+git init
+git add -A
+git commit -m "initial prototype setup"
+```
+
+This creates a clean starting point. All future changes can be tracked and deployed.
+
+## Step 6: Scaffold initial feature (if described)
 
 If the user provided a description of what they want to build (via $ARGUMENTS or in their message), scaffold the initial feature:
 - Create the page in `src/pages/`
@@ -75,20 +94,22 @@ If the user provided a description of what they want to build (via $ARGUMENTS or
 - Create a Pinia store in `src/stores/`
 - Wire everything together
 
-## Step 5: Done
+## Step 7: Done
 
 Tell the user:
 ```
-Prototype ready! Run:
+Your prototype is ready! To start it:
+
   bun run dev
 
-Then open http://localhost:5173
+Then open http://localhost:5173 in your browser.
 
-Describe what you want to build and I'll create it.
+Tell me what you want to build and I'll create it for you.
 ```
 
 ## Important
 
-- Do NOT skip writing the CLAUDE.md file — it's essential for guiding future Claude sessions in this project.
+- Do NOT skip writing the `.gitignore` — without it, database files and dependencies will be committed.
+- Do NOT skip writing the `CLAUDE.md` — it guides all future Claude sessions in this project.
 - Do NOT modify the template files — write them exactly as they are in the plugin's template directory.
-- Create necessary subdirectories (`src/pages/`, `src/stores/`, etc.) before writing files into them.
+- Create necessary subdirectories before writing files into them.

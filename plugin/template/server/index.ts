@@ -4,7 +4,7 @@ import { logger } from "hono/logger";
 import { exampleRoutes } from "./routes/example";
 import { initDb } from "./db/schema";
 
-const app = new Hono();
+export const app = new Hono();
 
 app.use("*", logger());
 app.use("*", cors());

@@ -81,18 +81,37 @@ yourFeatureRoutes.get("/your-feature", (c) => {
   return c.json(rows);
 });
 
-// Create item
+// Create item (validate input, return 400 for bad data)
 yourFeatureRoutes.post("/your-feature", async (c) => {
   const body = await c.req.json();
+  if (!body.field1 || typeof body.field1 !== "string") {
+    return c.json({ message: "field1 is required" }, 400);
+  }
   const db = getDb();
   const result = db.query("INSERT INTO your_table (field1, field2) VALUES (?, ?) RETURNING *")
-    .get(body.field1, body.field2);
+    .get(body.field1.trim(), body.field2);
   return c.json(result, 201);
+});
+
+// Update item (check it exists and isn't deleted first)
+yourFeatureRoutes.patch("/your-feature/:id", async (c) => {
+  const body = await c.req.json();
+  const db = getDb();
+  const existing = db.query("SELECT * FROM your_table WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
+  if (!existing) return c.json({ message: "Not found" }, 404);
+  if (body.field1) {
+    db.query("UPDATE your_table SET field1 = ?, updated_at = datetime('now') WHERE id = ? AND is_deleted = 0")
+      .run(body.field1, c.req.param("id"));
+  }
+  const row = db.query("SELECT * FROM your_table WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
+  return c.json(row);
 });
 
 // Delete item (soft-delete, NOT hard delete)
 yourFeatureRoutes.delete("/your-feature/:id", (c) => {
   const db = getDb();
+  const existing = db.query("SELECT * FROM your_table WHERE id = ? AND is_deleted = 0").get(c.req.param("id"));
+  if (!existing) return c.json({ message: "Not found" }, 404);
   db.query("UPDATE your_table SET is_deleted = 1, updated_at = datetime('now') WHERE id = ?")
     .run(c.req.param("id"));
   return c.json({ success: true });
@@ -123,6 +142,8 @@ db.exec(`
 ```
 
 **Every table MUST include**: `id`, `is_deleted`, `created_at`, `updated_at`. This matches Valur's production BaseModel + BaseSafeMixin pattern.
+
+**If you change a table's columns** after creating it, you must delete `prototype.db` and restart the server. SQLite's `CREATE TABLE IF NOT EXISTS` won't alter an existing table — it just skips it.
 
 ### Adding Financial Calculations
 
@@ -227,11 +248,18 @@ Never hard-delete data. Always use soft-delete:
 - Every table has `is_deleted INTEGER NOT NULL DEFAULT 0`
 - DELETE endpoints set `is_deleted = 1` instead of removing the row
 - All queries filter `WHERE is_deleted = 0`
+- PATCH and DELETE endpoints must check `is_deleted = 0` before operating
 
 ### Timestamps
 Every table includes:
 - `created_at` — set once on creation
 - `updated_at` — updated on every modification
+
+### Input Validation
+Every POST and PATCH endpoint must:
+- Check that required fields are present and have the correct type
+- Return `{ message: "..." }` with HTTP 400 for invalid input
+- Trim string inputs before saving
 
 ### Financial Precision
 - Use `decimal.js` for ALL financial calculations
@@ -248,8 +276,15 @@ This matches the production Model service pattern exactly.
 ### API Response Shapes
 - List endpoints return arrays: `[{ id, ...fields, created_at, updated_at }]`
 - Create endpoints return the created object with `201` status
-- Error responses: `{ message: "..." }` with appropriate HTTP status
+- Update endpoints return the updated object with `200` status
+- Error responses: `{ message: "..." }` with appropriate HTTP status (400 bad input, 404 not found)
 - Delete endpoints return `{ success: true }`
+
+## Available Skills
+
+- `/valur-prototype:review` — Check prototype against Valur production standards and generate an integration report
+- `/valur-prototype:investigate` — Systematic root-cause debugging (don't guess, find the cause first)
+- `/valur-prototype:ship` — Type-check, commit, and deploy to Vercel for sharing
 
 ## What NOT to Do
 
@@ -260,28 +295,38 @@ This matches the production Model service pattern exactly.
 - **Do NOT add environment variable management** beyond what's here. Keep it simple.
 - **Do NOT create separate microservices**. Everything runs in this one project.
 - **Do NOT use an ORM**. Raw SQL with `bun:sqlite` is fine for prototypes. Engineers will translate to Django ORM.
+- **Do NOT delete `.gitignore`**. It prevents database files, dependencies, and secrets from being committed.
 
 ## File Structure
 
 ```
-prototype-template/
-├── src/                    # Frontend (Vue 3)
-│   ├── pages/              # Page components (one per route)
-│   ├── components/         # Reusable UI components
-│   ├── stores/             # Pinia state stores
-│   ├── composables/        # Vue composables (useApi, etc.)
-│   ├── types/              # TypeScript type definitions
-│   ├── assets/             # CSS, images
-│   ├── App.vue             # Root component with nav
-│   ├── router.ts           # Route definitions
-│   └── main.ts             # App entry point
-├── server/                 # Backend API (Hono)
-│   ├── routes/             # API route handlers
-│   ├── db/                 # Database schema and setup
-│   └── index.ts            # Server entry point
-├── calcs/                  # Financial calculations
-│   └── index.ts            # Calculator functions
+your-prototype/
+├── .gitignore                 # Excludes node_modules, db, dist, secrets
+├── CLAUDE.md                  # This file
+├── package.json               # Bun dependencies
+├── tsconfig.json              # TypeScript config
+├── tsconfig.node.json         # Vite TS config
+├── vite.config.ts             # Vite + API proxy setup
+├── tailwind.config.ts         # Tailwind with Valur colors
+├── postcss.config.js          # PostCSS
+├── index.html                 # Entry HTML
 ├── scripts/
-│   └── dev.ts              # Dev server launcher
-└── CLAUDE.md               # This file
+│   └── dev.ts                 # Dev server launcher
+├── src/                       # Frontend (Vue 3)
+│   ├── pages/                 # Page components (one per route)
+│   ├── components/            # Reusable UI components
+│   ├── stores/                # Pinia state stores
+│   ├── composables/           # Vue composables (useApi, etc.)
+│   ├── types/                 # TypeScript type definitions
+│   ├── assets/                # CSS, images
+│   ├── App.vue                # Root component with nav
+│   ├── router.ts              # Route definitions
+│   ├── env.d.ts               # Vue type declarations
+│   └── main.ts                # App entry point
+├── server/                    # Backend API (Hono)
+│   ├── routes/                # API route handlers
+│   ├── db/                    # Database schema and setup
+│   └── index.ts               # Server entry point
+└── calcs/                     # Financial calculations
+    └── index.ts               # Calculator functions
 ```

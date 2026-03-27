@@ -8,9 +8,15 @@
  * - Model service uses Pydantic models or ModelParams classes
  */
 
-// Example: define your data types here
-export interface Example {
+// Base fields present on every record (maps to Django BaseModel + BaseSafeMixin)
+export interface BaseRecord {
   id: number;
-  name: string;
+  is_deleted: number;
   created_at: string;
+  updated_at: string;
+}
+
+// Example: define your data types here
+export interface Example extends BaseRecord {
+  name: string;
 }

@@ -90,10 +90,42 @@ BUILDING A PROTOTYPE
 
 
 ================================================================
+DEBUGGING A PROTOTYPE
+================================================================
+
+If something is broken or behaving unexpectedly, run:
+
+  /valur-prototype:investigate
+
+Claude will trace the code, match against common prototype bugs,
+and find the root cause before changing anything.
+
+
+================================================================
+SHIPPING A PROTOTYPE
+================================================================
+
+When your prototype is ready to share with the team, run:
+
+  /valur-prototype:ship
+
+This will:
+  1. Type-check the code (fix any errors)
+  2. Commit your changes
+  3. Deploy to Vercel
+  4. Give you a live URL to share
+
+First time only: you'll need to run "vercel login" to
+authenticate. The skill will guide you through this.
+
+For production deployment, say: /valur-prototype:ship prod
+
+
+================================================================
 REVIEWING A PROTOTYPE
 ================================================================
 
-When your prototype is ready, ask an engineer to run:
+When your prototype is ready for engineering handoff, run:
 
   /valur-prototype:review
 
